@@ -1,10 +1,14 @@
 package app
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/nickmonks/microservices-go/mvc/controllers"
+)
 
 func StartApp() {
 	http.HandleFunc("/users", controllers.GetUser)
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8081", nil); err != nil {
 		panic(err)
 	}
 }
