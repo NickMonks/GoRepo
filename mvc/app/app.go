@@ -1,14 +1,30 @@
 package app
 
 import (
-	"net/http"
-
-	"github.com/nickmonks/microservices-go/mvc/controllers"
+	"github.com/gin-gonic/gin"
 )
 
+var (
+	router *gin.Engine
+)
+
+// IMPORTANT: init function gets call when it is imported into another package.
+// because app is being imported from main, it will have tge router initializations
+func init() {
+	// Defaults wraps the gin.New() and allows recovery, which recovers from panic
+	router = gin.Default()
+}
+
 func StartApp() {
-	http.HandleFunc("/users", controllers.GetUser)
-	if err := http.ListenAndServe(":8081", nil); err != nil {
+
+	mapUrls()
+
+	// use router.Run
+	if err := router.Run(":8081"); err != nil {
 		panic(err)
 	}
+}
+
+func getRouter() {
+
 }
