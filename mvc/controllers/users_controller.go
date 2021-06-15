@@ -1,17 +1,17 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
 	"strconv"
 
+	"github.com/gin-gonic/gin"
 	"github.com/nickmonks/microservices-go/mvc/services"
 	"github.com/nickmonks/microservices-go/mvc/utils"
 )
 
-func GetUser(resp http.ResponseWriter, req *http.Request) {
-	userIdParam := req.URL.Query().Get("user")
-	userId, err := strconv.ParseInt(userIdParam, 10, 64)
+// the gin controller needs to implement the interface of a function that takes a *gin.Context
+func GetUser(c *gin.Context) {
+	userId, err := strconv.ParseInt(c.Param("user"), 10, 64)
 	if err != nil {
 		apiErr := &utils.ApplicationError{
 			Message:    "user_id must be a number!",
@@ -19,23 +19,19 @@ func GetUser(resp http.ResponseWriter, req *http.Request) {
 			Code:       "not found",
 		}
 
-		jsonValue, _ := json.Marshal(apiErr)
-		resp.WriteHeader(apiErr.StatusCode)
-		resp.Write(jsonValue)
-		return
+		// this will send the response back to the client
+		utils.Respond(c, apiErr.StatusCode, apiErr)
+		return // we could not returning and non block the code.
 	}
 
 	// call a service, which retrieves the data from the backend
 	user, apiErr := services.GetUser(userId)
 	if apiErr != nil {
-		//TODO: Handle error
-		resp.WriteHeader(apiErr.StatusCode)
-		resp.Write([]byte(err.Error()))
+		utils.Respond(c, apiErr.StatusCode, apiErr)
 		return
 	}
 
 	//return user to client
-	jsonValue, _ := json.Marshal(user)
-	resp.Write(jsonValue)
+	utils.Respond(c, http.StatusOK, user)
 
 }
