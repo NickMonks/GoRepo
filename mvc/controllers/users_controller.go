@@ -32,6 +32,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	//return user to client
+	// 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
 	utils.Respond(c, http.StatusOK, user)
 
 }
