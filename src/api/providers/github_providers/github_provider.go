@@ -19,8 +19,9 @@ const (
 )
 
 func getAuthorizationHeader(accessToken string) string {
-	return fmt.Sprintf(headerAuthorizationFormat, "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")
+	return fmt.Sprintf(headerAuthorizationFormat, accessToken)
 }
+
 func CreateRepo(accessToken string, request github.CreateRepoRequest) (*github.CreateRepoResponse, *github.GithubErrorResponse) {
 
 	headers := http.Header{}
@@ -35,8 +36,9 @@ func CreateRepo(accessToken string, request github.CreateRepoRequest) (*github.C
 	}
 
 	bytes, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, &github.GithubErrorResponse{StatusCode: http.StatusInternalServerError, Message: "invalid response body"}
+	if err != nil && bytes != nil {
+		log.Println("Error when trying to create new repo...")
+		return nil, &github.GithubErrorResponse{StatusCode: http.StatusInternalServerError, Message: "invalid response body. Can't read bytes of memory"}
 	}
 
 	defer response.Body.Close()
