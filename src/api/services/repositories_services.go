@@ -15,6 +15,7 @@ type repoService struct {
 
 type repoServiceInterface interface {
 	CreateRepo(request repositories.CreateRepoRequest) (*repositories.CreateRepoResponse, errors.ApiError)
+	CreateRepos(request []repositories.CreateRepoRequest) (repositories.CreateReposResponse, errors.ApiError)
 }
 
 var (
@@ -54,4 +55,45 @@ func (s *repoService) CreateRepo(input repositories.CreateRepoRequest) (*reposit
 
 	return &result, nil
 
+}
+
+// create repo concurrently (we called the go routine and create a channel)
+func (s *repoService) CreateRepos(request []repositories.CreateRepoRequest) (repositories.CreateReposResponse, errors.ApiError) {
+	input := make(chan repositories.CreateRepositoriesResult)
+	for _, current := range request {
+		go s.createRepoConcurrent(current, input)
+
+	}
+}
+
+func (s *repoService) createRepoConcurrent(input repositories.CreateRepoRequest, output chan repositories.CreateRepositoriesResult) {
+	if err := input.Validate(); err != nil {
+		output <- repositories.CreateRepositoriesResult{
+			Error: err,
+		}
+
+		return
+	}
+	// If no error, create the request to Github API
+	request := github.CreateRepoRequest{
+		Name:        input.Name,
+		Description: input.Description,
+		Private:     false,
+	}
+
+	result, err := github_provider.CreateRepo(config.GetGithubAccessToken(), request)
+	if err != nil {
+		output <- repositories.CreateRepositoriesResult{
+			Error: errors.NewApiError(err.StatusCode, err.Message),
+		}
+	}
+
+	// Once validation is successful, we simply send the repository result to the channel
+	output <- repositories.CreateRepositoriesResult{
+		Response: &repositories.CreateRepoResponse{
+			Id:    result.Id,
+			Name:  result.Name,
+			Owner: result.Owner.Login,
+		},
+	}
 }
