@@ -2,6 +2,7 @@ package app
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/nickmonks/microservices-go/src/api/log"
 )
 
 var (
@@ -16,15 +17,11 @@ func init() {
 }
 
 func StartApp() {
-
+	log.Log.Info("About to map the urls")
 	mapUrls()
 
 	// use router.Run
 	if err := router.Run(":8081"); err != nil {
 		panic(err)
 	}
-}
-
-func getRouter() {
-
 }

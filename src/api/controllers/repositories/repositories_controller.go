@@ -30,3 +30,25 @@ func CreateRepo(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, result)
 }
+
+// To create several repos asyncronously
+func CreateRepos(c *gin.Context) {
+	var request []repositories.CreateRepoRequest
+
+	// will try to bind an empty struct to check if its bindable
+	if err := c.ShouldBindJSON(&request); err != nil {
+		apiErr := errors.NewBadRequestError("Invalid JSON body")
+		c.JSON(apiErr.Status(), apiErr)
+		return
+	}
+
+	// Remember: RepositoryService is instantiated in the init() function, created when imported
+	// and is an interface that implements createRepo.
+	result, err := services.RepositoryService.CreateRepos(request)
+	if err != nil {
+		c.JSON(err.Status(), err)
+		return
+	}
+
+	c.JSON(result.StatusCode, result)
+}
