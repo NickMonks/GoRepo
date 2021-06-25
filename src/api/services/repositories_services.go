@@ -8,6 +8,7 @@ import (
 	"github.com/nickmonks/microservices-go/src/api/config"
 	"github.com/nickmonks/microservices-go/src/api/domain/github"
 	"github.com/nickmonks/microservices-go/src/api/domain/repositories"
+	"github.com/nickmonks/microservices-go/src/api/log"
 	github_provider "github.com/nickmonks/microservices-go/src/api/providers/github_providers"
 	"github.com/nickmonks/microservices-go/src/api/utils/errors"
 )
@@ -42,10 +43,13 @@ func (s *repoService) CreateRepo(input repositories.CreateRepoRequest) (*reposit
 		Private:     false,
 	}
 
+	log.Info("Sending request to external Api...", "client_id: id", "status: pending")
 	response, err := github_provider.CreateRepo(config.GetGithubAccessToken(), request)
 	if err != nil {
+		log.Error("Sending request to external Api...", err, "client_id: id", "status: Error")
 		return nil, errors.NewApiError(err.StatusCode, err.Message)
 	}
+	log.Info("Sending request to external Api...", "client_id: id", "status: success")
 
 	// the response that we will retrieve to the client
 	// (we want to pass this struct)
